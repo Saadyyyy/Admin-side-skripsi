@@ -69,56 +69,5 @@ document.addEventListener("DOMContentLoaded", function() {
   .catch(error => {
       console.error('Error loading header:', error);
   });
-  
-
 });
 
-
-document.addEventListener("DOMContentLoaded", async function () {
-    // Get the JWT token from localStorage
-    const token = localStorage.getItem("token");
-  
-    if (!token) {
-      alert("You need to log in first.");
-      window.location.href = "login.html"; // Redirect to login page if token is not available
-      return;
-    }
-  
-    // Get the user profile based on user_id (retrieved from localStorage)
-    const userId = localStorage.getItem("user_id");
-  
-    if (!userId) {
-      alert("User ID is not available. Please log in.");
-      window.location.href = "login.html"; // Redirect to login page if user_id is not available
-      return;
-    }
-  
-    try {
-      const response = await fetch(`https://3r1djzn5-8080.asse.devtunnels.ms/user/detail?user_id=${userId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` // Include JWT token in Authorization header
-        }
-      });
-  
-      const result = await response.json();
-  
-      if (result.status === "OK" && result.data) {
-        const { username, profile } = result.data;
-  
-        // Create elements for the username and profile picture
-        const profileContainer = document.getElementById("user-profile");
-        profileContainer.innerHTML = `
-        <span class="me-3 text-white" style="font-size: 1.4rem;font-weight: medium;">${username}</span>
-        <img src="${profile}" alt="${username}'s profile" class="rounded-circle" width="50" height="50">
-      `;
-      
-      } else {
-        console.error("Failed to load user profile:", result.error_message || "Unknown error");
-      }
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-    }
-  });
-  
