@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    
+    <style>
+        .category-card {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .category-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .category-card .card-body {
+            text-align: center;
+        }
+        .category-card .card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .category-card .card-text {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+        .category-card .card {
+            border-radius: 12px;
+            border: none;
+        }
+        .category-card .card-header {
+            background-color: #f8f9fa;
+            border-radius: 12px 12px 0 0;
+            padding: 1rem;
+        }
+    </style>
+
+    <script>
+        // Function to decode JWT and get payload
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        // Function to check if token is expired
+        function isTokenExpired(token) {
+            const payload = parseJwt(token);
+            if (payload && payload.exp) {
+                const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+                return currentTime >= payload.exp; // True if expired
+            }
+            return true; // Invalid token
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Retrieve token from localStorage
+            const token = localStorage.getItem("token");
+            
+            // Check if token exists and is valid
+            if (!token || isTokenExpired(token)) {
+                alert("Your session has expired. Please log in again.");
+                window.location.href = "login.html";
+            } else {
+                console.log("Token is valid and active.");
+            }
+
+            // Fetch categories data based on keyword search
+            async function fetchCategories(keyword = '') {
+                try {
+                    const response = await fetch(`https://3r1djzn5-8080.asse.devtunnels.ms/category/?keyword=${keyword}`, {
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                        },
+                    });
+                    const result = await response.json();
+
+                    if (response.ok && result.data) {
+                        // Loop through the categories and create cards for each one
+                        result.data.forEach(async (category) => {
+                            const categoryCard = document.createElement("div");
+                            categoryCard.className = "col-md-4 mb-4 category-card"; // Bootstrap grid classes
+
+                            // Fetch the total number of questions based on CategoryId
+                            const totalData = await fetchTotalDataForCategory(category.CategoryId);
+
+                            categoryCard.innerHTML = `
+                                <div class="card shadow-sm">
+                                    <div class="card-header">
+                                        <i class="lni lni-layers"></i>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title">${category.Category}</h5>
+                                        <p class="card-text">Total Soal: ${totalData}</p>
+                                    </div>
+                                </div>
+                            `;
+
+                            document.getElementById("category-cards").appendChild(categoryCard);
+                        });
+                    } else {
+                        alert("Gagal memuat data kategori.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching categories:", error);
+                    alert("Terjadi kesalahan. Silakan coba lagi.");
+                }
+            }
+
+            // Fetch the total number of questions for a given category
+            async function fetchTotalDataForCategory(categoryId) {
+                try {
+                    const response = await fetch(`https://3r1djzn5-8080.asse.devtunnels.ms/soal/?category_id=${categoryId}`, {
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                        },
+                    });
+                    const result = await response.json();
+                    return result.total_data; // Return the total number of questions
+                } catch (error) {
+                    console.error("Error fetching total data for category:", error);
+                    return 0; // Return 0 if there's an error
+                }
+            }
+
+            // Call the function with an empty keyword or a specific one
+            fetchCategories(); // You can pass a keyword like 'Math' or any search term if needed
+        });
+    </script>
+</head>
+<body>
+    <!-- Header -->
+    <div id="header"></div>
+
+    <!-- Content -->
+    <main class="container mt-5">
+        <h1 class="text-center mb-4">Dashboard Kategori Soal</h1>
+        <p class="text-center mb-4">Halaman ini menampilkan kategori soal dan jumlah soal berdasarkan kategori.</p>
+
+        <!-- Categories Cards -->
+        <div id="category-cards" class="row">
+            <!-- Category cards will be injected here -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <!-- <div id="footer"></div> -->
+
+    <script src="assets/js/scripts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

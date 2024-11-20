@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Kategori</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .category-container {
+            margin-top: 20px;
+        }
+
+        .category-card {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .category-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .category-date {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .category-form-container {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header"></div>
+
+    <div class="container category-container">
+        <h1 class="text-center mb-4">Daftar Kategori</h1>
+
+        <!-- Create Category Form -->
+        <div class="category-form-container">
+            <h3>Tambah Kategori Baru</h3>
+            <form id="createCategoryForm">
+                <div class="mb-3">
+                    <label for="newCategory" class="form-label">Nama Kategori</label>
+                    <input type="text" id="newCategory" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-success">Buat Kategori</button>
+            </form>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="mb-4">
+            <form id="searchForm" class="d-flex">
+                <input type="text" id="searchInput" class="form-control me-2" placeholder="Cari kategori..." />
+                <button type="submit" class="btn btn-primary">Cari</button>
+            </form>
+        </div>
+
+        <!-- List Category -->
+        <div id="category-list"></div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const categoryList = document.getElementById("category-list");
+            const searchForm = document.getElementById("searchForm");
+            const searchInput = document.getElementById("searchInput");
+            const createCategoryForm = document.getElementById("createCategoryForm");
+            const newCategoryInput = document.getElementById("newCategory");
+
+            // Fungsi untuk mengambil kategori berdasarkan keyword
+            async function fetchCategories(keyword = "") {
+                try {
+                    categoryList.innerHTML = "<p>Loading...</p>"; // Loading indicator
+
+                    // Fetch kategori dari API
+                    const response = await fetch(`https://3r1djzn5-8080.asse.devtunnels.ms/category/?keyword=${keyword}`);
+                    const result = await response.json();
+
+                    categoryList.innerHTML = ""; // Hapus loading indicator
+
+                    if (response.ok && result.data) {
+                        if (result.data.length === 0) {
+                            categoryList.innerHTML = "<p class='text-center'>Tidak ada kategori ditemukan.</p>";
+                            return;
+                        }
+
+                        // Render kategori
+                        result.data.forEach((category) => {
+                            const categoryCard = document.createElement("div");
+                            categoryCard.className = "category-card";
+
+                            categoryCard.innerHTML = `
+                                <div class="category-title">${category.Category}</div>
+                                <div class="category-date">Dibuat pada: ${new Date(category.CreatedAt).toLocaleString()}</div>
+                                <div class="d-flex justify-content-between">
+                                    <button class="btn btn-warning btn-sm" onclick="editCategory(${category.CategoryId})">Edit</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.CategoryId})">Hapus</button>
+                                </div>
+                            `;
+
+                            categoryList.appendChild(categoryCard);
+                        });
+                    } else {
+                        categoryList.innerHTML = "<p class='text-center text-danger'>Gagal memuat kategori.</p>";
+                    }
+                } catch (error) {
+                    console.error("Error fetching categories:", error);
+                    categoryList.innerHTML = "<p class='text-center text-danger'>Terjadi kesalahan. Silakan coba lagi.</p>";
+                }
+            }
+
+            async function createCategory(categoryName) {
+    try {
+        // Get the token from localStorage (or wherever you store it)
+        const token = localStorage.getItem('token'); // Adjust if your token is stored elsewhere
+
+        // Check if the token exists
+        if (!token) {
+            alert("Token tidak ditemukan. Silakan login terlebih dahulu.");
+            window.location.href = 'login.html'; // Redirect to login if token is missing
+            return;
+        }
+
+        // Send the POST request with Bearer token
+        const response = await fetch("https://3r1djzn5-8080.asse.devtunnels.ms/category/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}` // Add the Bearer token in the header
+            },
+            body: JSON.stringify({ category: categoryName }),
+        });
+
+        const result = await response.json();
+        if (response.ok && result.status === "OK") {
+            alert(result.data); // Show success message
+            fetchCategories(); // Reload categories
+        } else {
+            alert("Gagal membuat kategori.");
+        }
+    } catch (error) {
+        console.error("Error creating category:", error);
+        alert("Terjadi kesalahan. Silakan coba lagi.");
+    }
+}
+
+            // Fungsi untuk mengedit kategori
+            async function editCategory(categoryId) {
+                const categoryName = prompt("Masukkan nama kategori baru:");
+                if (categoryName) {
+                    try {
+                        const response = await fetch(`https://3r1djzn5-8080.asse.devtunnels.ms/category/update?category_id=${categoryId}`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ category: categoryName }),
+                        });
+
+                        const result = await response.json();
+                        if (response.ok && result.status === "OK") {
+                            alert(result.data); // Tampilkan pesan sukses
+                            fetchCategories(); // Reload kategori
+                        } else {
+                            alert("Gagal memperbarui kategori.");
+                        }
+                    } catch (error) {
+                        console.error("Error updating category:", error);
+                        alert("Terjadi kesalahan. Silakan coba lagi.");
+                    }
+                }
+            }
+
+            // Fungsi untuk menghapus kategori
+            async function deleteCategory(categoryId) {
+                if (confirm("Apakah Anda yakin ingin menghapus kategori ini?")) {
+                    try {
+                        const response = await fetch(`https://3r1djzn5-8080.asse.devtunnels.ms/category/delete?category_id=${categoryId}`, {
+                            method: "POST",
+                        });
+
+                        const result = await response.json();
+                        if (response.ok && result.status === "OK") {
+                            alert(result.data); // Tampilkan pesan sukses
+                            fetchCategories(); // Reload kategori
+                        } else {
+                            alert("Gagal menghapus kategori.");
+                        }
+                    } catch (error) {
+                        console.error("Error deleting category:", error);
+                        alert("Terjadi kesalahan. Silakan coba lagi.");
+                    }
+                }
+            }
+
+            // Event listener untuk pencarian
+            searchForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+                const keyword = searchInput.value.trim();
+                fetchCategories(keyword); // Fetch kategori berdasarkan keyword
+            });
+
+            // Event listener untuk membuat kategori baru
+            createCategoryForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+                const categoryName = newCategoryInput.value.trim();
+                if (categoryName) {
+                    createCategory(categoryName); // Create category
+                    newCategoryInput.value = ""; // Clear input
+                }
+            });
+
+            // Load semua kategori saat halaman dibuka
+            fetchCategories();
+        });
+    </script>
+    <script src="assets/js/scripts.js"></script>
+
+</body>
+
+</html>
