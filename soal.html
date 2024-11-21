@@ -138,6 +138,8 @@
                 <div class="text-muted small">Dibuat pada: ${new Date(
                   soal.CreatedAt
                 ).toLocaleString()}</div>
+                <button class="btn btn-warning" onclick="editSoal(${soal.SoalId})">Edit</button>
+                <button class="btn btn-danger" onclick="deleteSoal(${soal.SoalId})">Hapus</button>
               `;
 
               soalList.appendChild(soalCard);
@@ -150,6 +152,47 @@
           console.error("Error fetching soal:", error);
           soalList.innerHTML =
             "<p class='text-center text-danger'>Terjadi kesalahan. Silakan coba lagi.</p>";
+        }
+      }
+
+      // Fungsi untuk edit soal
+      function editSoal(soalId) {
+        window.location.href = `editSoal.html?soal_id=${soalId}`;
+      }
+
+      // Fungsi untuk delete soal
+      async function deleteSoal(soalId) {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          alert("Anda harus login terlebih dahulu.");
+          window.location.href = "login.html";
+          return;
+        }
+
+        const confirmDelete = confirm("Apakah Anda yakin ingin menghapus soal ini?");
+        if (!confirmDelete) return;
+
+        try {
+          const response = await fetch(
+            `http://localhost:8080/soal/delete?soal_id=${soalId}`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (response.ok) {
+            alert("Soal berhasil dihapus.");
+            fetchSoal(); // Refresh soal list
+          } else {
+            alert("Gagal menghapus soal.");
+          }
+        } catch (error) {
+          console.error("Error deleting soal:", error);
+          alert("Terjadi kesalahan saat menghapus soal.");
         }
       }
 

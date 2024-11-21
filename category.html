@@ -80,129 +80,101 @@
 
             // Fungsi untuk mengambil kategori berdasarkan keyword
             async function fetchCategories(keyword = "") {
-                try {
-                    categoryList.innerHTML = "<p>Loading...</p>"; // Loading indicator
+    try {
+        categoryList.innerHTML = "<p>Loading...</p>"; // Loading indicator
 
-                    // Fetch kategori dari API
-                    const response = await fetch(`https://3r1djzn5-8080.asse.devtunnels.ms/category/?keyword=${keyword}`);
-                    const result = await response.json();
+        // Fetch kategori dari API
+        const response = await fetch(`https://3r1djzn5-8080.asse.devtunnels.ms/category/?keyword=${keyword}`);
+        const result = await response.json();
 
-                    categoryList.innerHTML = ""; // Hapus loading indicator
+        categoryList.innerHTML = ""; // Hapus loading indicator
 
-                    if (response.ok && result.data) {
-                        if (result.data.length === 0) {
-                            categoryList.innerHTML = "<p class='text-center'>Tidak ada kategori ditemukan.</p>";
-                            return;
-                        }
-
-                        // Render kategori
-                        result.data.forEach((category) => {
-                            const categoryCard = document.createElement("div");
-                            categoryCard.className = "category-card";
-
-                            categoryCard.innerHTML = `
-                                <div class="category-title">${category.Category}</div>
-                                <div class="category-date">Dibuat pada: ${new Date(category.CreatedAt).toLocaleString()}</div>
-                                <div class="d-flex justify-content-between">
-                                    <button class="btn btn-warning btn-sm" onclick="editCategory(${category.CategoryId})">Edit</button>
-                                    <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.CategoryId})">Hapus</button>
-                                </div>
-                            `;
-
-                            categoryList.appendChild(categoryCard);
-                        });
-                    } else {
-                        categoryList.innerHTML = "<p class='text-center text-danger'>Gagal memuat kategori.</p>";
-                    }
-                } catch (error) {
-                    console.error("Error fetching categories:", error);
-                    categoryList.innerHTML = "<p class='text-center text-danger'>Terjadi kesalahan. Silakan coba lagi.</p>";
-                }
+        if (response.ok && result.data) {
+            if (result.data.length === 0) {
+                categoryList.innerHTML = "<p class='text-center'>Tidak ada kategori ditemukan.</p>";
+                return;
             }
 
-            async function createCategory(categoryName) {
-    try {
-        // Get the token from localStorage (or wherever you store it)
-        const token = localStorage.getItem('token'); // Adjust if your token is stored elsewhere
+            // Render kategori
+            result.data.forEach((category) => {
+                const categoryCard = document.createElement("div");
+                categoryCard.className = "category-card";
 
-        // Check if the token exists
-        if (!token) {
-            alert("Token tidak ditemukan. Silakan login terlebih dahulu.");
-            window.location.href = 'login.html'; // Redirect to login if token is missing
-            return;
-        }
+                categoryCard.innerHTML = `
+                    <div class="category-title">${category.Category}</div>
+                    <div class="category-date">Dibuat pada: ${new Date(category.CreatedAt).toLocaleString()}</div>
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-warning btn-sm edit-button" data-id="${category.CategoryId}">Edit</button>
+                        <button class="btn btn-danger btn-sm delete-button" data-id="${category.CategoryId}">Hapus</button>
+                    </div>
+                `;
 
-        // Send the POST request with Bearer token
-        const response = await fetch("https://3r1djzn5-8080.asse.devtunnels.ms/category/create", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}` // Add the Bearer token in the header
-            },
-            body: JSON.stringify({ category: categoryName }),
-        });
+                categoryList.appendChild(categoryCard);
+            });
 
-        const result = await response.json();
-        if (response.ok && result.status === "OK") {
-            alert(result.data); // Show success message
-            fetchCategories(); // Reload categories
+            // Tambahkan event listener untuk tombol edit dan delete
+            document.querySelectorAll(".edit-button").forEach((button) => {
+                button.addEventListener("click", (event) => {
+                    const categoryId = event.target.dataset.id;
+                    editCategory(categoryId);
+                });
+            });
+
+            document.querySelectorAll(".delete-button").forEach((button) => {
+                button.addEventListener("click", (event) => {
+                    const categoryId = event.target.dataset.id;
+                    deleteCategory(categoryId);
+                });
+            });
         } else {
-            alert("Gagal membuat kategori.");
+            categoryList.innerHTML = "<p class='text-center text-danger'>Gagal memuat kategori.</p>";
         }
     } catch (error) {
-        console.error("Error creating category:", error);
-        alert("Terjadi kesalahan. Silakan coba lagi.");
+        console.error("Error fetching categories:", error);
+        categoryList.innerHTML = "<p class='text-center text-danger'>Terjadi kesalahan. Silakan coba lagi.</p>";
     }
 }
 
-            // Fungsi untuk mengedit kategori
-            async function editCategory(categoryId) {
-                const categoryName = prompt("Masukkan nama kategori baru:");
-                if (categoryName) {
-                    try {
-                        const response = await fetch(`https://3r1djzn5-8080.asse.devtunnels.ms/category/update?category_id=${categoryId}`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({ category: categoryName }),
-                        });
 
-                        const result = await response.json();
-                        if (response.ok && result.status === "OK") {
-                            alert(result.data); // Tampilkan pesan sukses
-                            fetchCategories(); // Reload kategori
-                        } else {
-                            alert("Gagal memperbarui kategori.");
-                        }
-                    } catch (error) {
-                        console.error("Error updating category:", error);
-                        alert("Terjadi kesalahan. Silakan coba lagi.");
+            async function createCategory(categoryName) {
+                try {
+                    // Get the token from localStorage (or wherever you store it)
+                    const token = localStorage.getItem('token'); // Adjust if your token is stored elsewhere
+
+                    // Check if the token exists
+                    if (!token) {
+                        alert("Token tidak ditemukan. Silakan login terlebih dahulu.");
+                        window.location.href = 'login.html'; // Redirect to login if token is missing
+                        return;
                     }
+
+                    // Send the POST request with Bearer token
+                    const response = await fetch("https://3r1djzn5-8080.asse.devtunnels.ms/category/create", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}` // Add the Bearer token in the header
+                        },
+                        body: JSON.stringify({ category: categoryName }),
+                    });
+
+                    const result = await response.json();
+                    if (response.ok && result.status === "OK") {
+                        alert(result.data); // Show success message
+                        fetchCategories(); // Reload kategori
+                    } else {
+                        alert("Gagal membuat kategori.");
+                    }
+                } catch (error) {
+                    console.error("Error creating category:", error);
+                    alert("Terjadi kesalahan. Silakan coba lagi.");
                 }
             }
 
-            // Fungsi untuk menghapus kategori
-            async function deleteCategory(categoryId) {
-                if (confirm("Apakah Anda yakin ingin menghapus kategori ini?")) {
-                    try {
-                        const response = await fetch(`https://3r1djzn5-8080.asse.devtunnels.ms/category/delete?category_id=${categoryId}`, {
-                            method: "POST",
-                        });
+            // Load semua kategori saat halaman dibuka
+            fetchCategories();
 
-                        const result = await response.json();
-                        if (response.ok && result.status === "OK") {
-                            alert(result.data); // Tampilkan pesan sukses
-                            fetchCategories(); // Reload kategori
-                        } else {
-                            alert("Gagal menghapus kategori.");
-                        }
-                    } catch (error) {
-                        console.error("Error deleting category:", error);
-                        alert("Terjadi kesalahan. Silakan coba lagi.");
-                    }
-                }
-            }
+
 
             // Event listener untuk pencarian
             searchForm.addEventListener("submit", function (event) {
@@ -221,12 +193,81 @@
                 }
             });
 
-            // Load semua kategori saat halaman dibuka
-            fetchCategories();
+            async function deleteCategory(categoryId) {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    alert("Token tidak ditemukan. Silakan login terlebih dahulu.");
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                if (confirm("Apakah Anda yakin ingin menghapus kategori ini?")) {
+                    try {
+                        const response = await fetch(
+                            `https://3r1djzn5-8080.asse.devtunnels.ms/category/delete?category_id=${categoryId}`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    "Authorization": `Bearer ${token}`
+                                }
+                            }
+                        );
+
+                        const result = await response.json();
+                        if (response.ok && result.status === "OK") {
+                            alert(result.data); // Tampilkan pesan sukses
+                            fetchCategories(); // Reload kategori
+                        } else {
+                            alert(result.error_message || "Gagal menghapus kategori.");
+                        }
+                    } catch (error) {
+                        console.error("Error deleting category:", error);
+                        alert("Terjadi kesalahan. Silakan coba lagi.");
+                    }
+                }
+            }
+
+            async function editCategory(categoryId) {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    alert("Token tidak ditemukan. Silakan login terlebih dahulu.");
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                const categoryName = prompt("Masukkan nama kategori baru:");
+                if (categoryName) {
+                    try {
+                        const response = await fetch(
+                            `https://3r1djzn5-8080.asse.devtunnels.ms/category/update?category_id=${categoryId}`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Authorization": `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ category: categoryName }),
+                            }
+                        );
+
+                        const result = await response.json();
+                        if (response.ok && result.status === "OK") {
+                            alert(result.data); // Tampilkan pesan sukses
+                            fetchCategories(); // Reload kategori
+                        } else {
+                            alert(result.error_message || "Gagal memperbarui kategori.");
+                        }
+                    } catch (error) {
+                        console.error("Error updating category:", error);
+                        alert("Terjadi kesalahan. Silakan coba lagi.");
+                    }
+                }
+            }
+
         });
+
     </script>
     <script src="assets/js/scripts.js"></script>
-
 </body>
 
 </html>
