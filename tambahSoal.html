@@ -55,9 +55,14 @@
           <input type="text" class="form-control" id="jawabanD" required />
         </div>
         <div class="mb-3">
+          <label for="jawabanE" class="form-label">Jawaban E</label>
+          <input type="text" class="form-control" id="jawabanE" required />
+        </div>
+        <div class="mb-3">
           <label for="jawabanBenar" class="form-label">Jawaban Benar</label>
           <input type="text" class="form-control" id="jawabanBenar" required />
         </div>
+        
         <button type="submit" class="btn btn-success">Tambah Soal</button>
       </form>
     </div>
@@ -80,6 +85,7 @@
         const jawabanB = document.getElementById("jawabanB").value;
         const jawabanC = document.getElementById("jawabanC").value;
         const jawabanD = document.getElementById("jawabanD").value;
+        const jawabanE = document.getElementById("jawabanE").value;
         const jawabanBenar = document.getElementById("jawabanBenar").value;
 
         const requestBody = {
@@ -89,6 +95,7 @@
           jawaban_b: jawabanB,
           jawaban_c: jawabanC,
           jawaban_d: jawabanD,
+          jawaban_e: jawabanE,
           jawaban_benar: jawabanBenar,
         };
 

@@ -108,6 +108,17 @@
           </div>
 
           <div class="mb-3">
+            <label for="jawabanEInput" class="form-label">Jawaban E</label>
+            <input
+              type="text"
+              id="jawabanDInput"
+              class="form-control"
+              placeholder="Masukkan jawaban E"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
             <label for="jawabanBenarInput" class="form-label">Jawaban Benar</label>
             <input
               type="text"
@@ -157,6 +168,7 @@
               document.getElementById("jawabanBInput").value = soal.JawabanB;
               document.getElementById("jawabanCInput").value = soal.JawabanC;
               document.getElementById("jawabanDInput").value = soal.JawabanD;
+              document.getElementById("jawabanEInput").value = soal.JawabanE;
               document.getElementById("jawabanBenarInput").value = soal.JawabanBenar;
               document.getElementById("categorySelect").value = soal.CategoryId;
       
@@ -214,10 +226,11 @@
           const jawabanB = document.getElementById("jawabanBInput").value;
           const jawabanC = document.getElementById("jawabanCInput").value;
           const jawabanD = document.getElementById("jawabanDInput").value;
+          const jawabanE = document.getElementById("jawabanEInput").value;
           const jawabanBenar = document.getElementById("jawabanBenarInput").value;
       
           // Check if categoryId is valid
-          if (!categoryId || !soal || !jawabanA || !jawabanB || !jawabanC || !jawabanD || !jawabanBenar) {
+          if (!categoryId || !soal || !jawabanA || !jawabanB || !jawabanC || !jawabanD || !jawabanE ||!jawabanBenar) {
             alert("Semua kolom harus diisi!");
             return;
           }
@@ -238,6 +251,7 @@
                   jawaban_b: jawabanB,
                   jawaban_c: jawabanC,
                   jawaban_d: jawabanD,
+                  jawaban_e: jawabanE,
                   jawaban_benar: jawabanBenar,
                 }),
               }
